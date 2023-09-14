@@ -18,6 +18,7 @@ return new class extends Migration {
             $table->timestamp("date_ordered")->useCurrent();
             $table->timestamp("date_needed")->nullable();
             $table->timestamp("date_approved")->nullable();
+            $table->timestamp("date_served")->nullable();
 
             $table->string("cip_no")->nullable();
             $table->string("helpdesk_no")->nullable();
@@ -55,6 +56,7 @@ return new class extends Migration {
             $table->string("charge_location_name");
 
             $table->string("rush")->nullable();
+            $table->string("reason");
 
             $table->unsignedInteger("requestor_id")->index();
             $table

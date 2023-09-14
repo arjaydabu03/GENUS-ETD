@@ -62,6 +62,10 @@ class StoreRequest extends FormRequest
             "customer.code" => "required",
             "customer.name" => "required",
 
+            "charge_company.id" => "required",
+            "charge_company.code" => "required",
+            "charge_company.name" => "required",
+
             "charge_department.id" => "required",
             "charge_department.code" => "required",
             "charge_department.name" => "required",
@@ -131,11 +135,8 @@ class StoreRequest extends FormRequest
             $date_today = Carbon::now()
                 ->timeZone("Asia/Manila")
                 ->format("Y-m-d");
-            $cutoff = date("H:i", strtotime(Cutoff::get()->value("time")));
 
-            $is_rush =
-                date("Y-m-d", strtotime($this->input("date_needed"))) == $date_today &&
-                $time_now > $cutoff;
+            $is_rush = date("Y-m-d", strtotime($this->input("date_needed"))) == $date_today;
 
             $with_rush_remarks = !empty($this->input("rush"));
 

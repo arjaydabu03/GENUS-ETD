@@ -12,7 +12,7 @@ class Location extends Model
 
     protected $table = "location";
 
-    protected $fillable = ["sync_id", "code", "name"];
+    protected $fillable = ["sync_id", "code", "name", "deleted_at"];
 
     public function departments()
     {

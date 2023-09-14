@@ -39,9 +39,12 @@ class UpdateRequest extends FormRequest
                 "required",
                 Rule::unique("transactions", "order_no")
                     ->ignore($this->route("order"))
-                    ->when($requestor_role == 3, function ($query) use ($requestor_id) {
-                        return $query->where("requestor_id", $requestor_id);
-                    })
+                    ->when(
+                        $requestor_role == 3 || $requestor_role == 2 || $requestor_role == 5,
+                        function ($query) use ($requestor_id) {
+                            return $query->where("requestor_id", $requestor_id);
+                        }
+                    )
                     // ->when($requestor_role == 2, function ($query) use ($requestor_id) {
                     //     return $query->where("requestor_id", $requestor_id);
                     // })
@@ -55,9 +58,13 @@ class UpdateRequest extends FormRequest
             "customer.code" => "required",
             "customer.name" => "required",
 
-            "charge.id" => "required",
-            "charge.code" => "required",
-            "charge.name" => "required",
+            "charge_department.id" => "required",
+            "charge_department.code" => "required",
+            "charge_department.name" => "required",
+
+            "charge_location.id" => "required",
+            "charge_location.code" => "required",
+            "charge_location.name" => "required",
 
             "rush" => "nullable",
 
@@ -121,17 +128,12 @@ class UpdateRequest extends FormRequest
             // $validator->errors()->add("custom", $this->user()->id);
             // $validator->errors()->add("custom", $this->input("order.*.id"));
 
-            $time_now = Carbon::now()
-                ->timezone("Asia/Manila")
-                ->format("H:i");
             $date_today = Carbon::now()
                 ->timeZone("Asia/Manila")
                 ->format("Y-m-d");
             $cutoff = date("H:i", strtotime(Cutoff::get()->value("time")));
 
-            $is_rush =
-                date("Y-m-d", strtotime($this->input("date_needed"))) == $date_today &&
-                $time_now > $cutoff;
+            $is_rush = date("Y-m-d", strtotime($this->input("date_needed"))) == $date_today;
 
             $with_rush_remarks = !empty($this->input("rush"));
 

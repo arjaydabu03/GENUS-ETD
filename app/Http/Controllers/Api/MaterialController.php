@@ -45,7 +45,8 @@ class MaterialController extends Controller
             ->when($search, function ($query) use ($search) {
                 $query
                     ->where("code", "like", "%" . $search . "%")
-                    ->orWhere("name", "like", "%" . $search . "%");
+                    ->orWhere("name", "like", "%" . $search . "%")
+                      ->orWhere("category_id", "like", "%" . $search . "%");
             });
 
         $material = $paginate

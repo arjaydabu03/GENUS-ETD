@@ -67,6 +67,7 @@ class Status
     const SINGLE_VALIDATION = "Data has been validated.";
     const INVALID_ACTION = "Invalid action.";
     const INVALID_UPDATE = "Unable to update this transaction is already approved.";
+    const INVALID_UPDATE_SERVE = "Unable to update this transaction is already served.";
     const NEW_PASSWORD = "Please change your password.";
     const EXISTS = "Data already exists.";
     const ACCESS_DENIED = "You do not have permission.";
