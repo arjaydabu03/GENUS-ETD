@@ -22,7 +22,8 @@ class Transaction extends Model
         "date_ordered",
         "date_served",
         "reason",
-         "order_type",
+        "order_type",
+        "updated_by",
 
         "company_id",
         "company_code",
@@ -39,7 +40,7 @@ class Transaction extends Model
         "customer_id",
         "customer_code",
         "customer_name",
-        
+
         "charge_company_id",
         "charge_company_code",
         "charge_company_name",
@@ -58,6 +59,7 @@ class Transaction extends Model
         "approver_id",
         "approver_name",
         "rush",
+        "status",
         "date_serve",
     ];
 

@@ -50,7 +50,7 @@ class ReportController extends Controller
                     ->orWhere("customer_name", "like", "%" . $search . "%")
                     ->orWhere("charge_department_name", "like", "%" . $search . "%")
                     ->orWhere("charge_location_name", "like", "%" . $search . "%")
-                     ->orWhere("requestor_name", "like", "%" . $search . "%");
+                    ->orWhere("requestor_name", "like", "%" . $search . "%");
             })
             ->when(isset($request->from) && isset($request->to), function ($query) use (
                 $from,
@@ -110,6 +110,33 @@ class ReportController extends Controller
         return GlobalFunction::response_function(Status::TRANSACTION_SERVE, $serve);
     }
 
+    // public function return_status(Request $request, $id)
+    // {
+    //     $invalid_return = Transaction::where("id", $id)
+    //         ->whereNull("date_served")
+    //         ->whereNull("return")
+    //         ->get();
+
+    //     if ($invalid_return->isEmpty()) {
+    //         return GlobalFunction::invalid(Status::INVALID_ACTION);
+    //     }
+    //     $serve = Transaction::where("id", $id)->whereNull("date_served");
+
+    //     $not_found = $serve->get()->first();
+    //     if (!$not_found) {
+    //         return GlobalFunction::not_found(Status::NOT_FOUND);
+    //     }
+
+    //     $serve->update([
+    //         "return" => $request["return"],
+    //         "date_approved" => null,
+    //     ]);
+
+    //     $serve = new TransactionResource($serve->get()->first());
+
+    //     return GlobalFunction::response_function(Status::TRANSACTION_RETURN, $serve);
+    // }
+
     public function count(Request $request)
     {
         $date_today = Carbon::now()
@@ -117,17 +144,13 @@ class ReportController extends Controller
 
             ->format("Y-m-d");
 
-       
         $today = Transaction::whereNotNull("date_approved")
             ->whereDate("date_needed", $date_today)
             ->get()
             ->count();
-     
 
         $count = [
-          
             "today" => $today,
-          
         ];
 
         return GlobalFunction::response_function(Status::COUNT_DISPLAY, $count);
@@ -141,7 +164,6 @@ class ReportController extends Controller
 
         $requestor_id = Auth()->id();
 
-      
         $approve = Transaction::whereNotNull("date_approved")
             ->where("requestor_id", $requestor_id)
             ->get()

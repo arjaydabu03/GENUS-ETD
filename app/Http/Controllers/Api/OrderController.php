@@ -2,31 +2,32 @@
 
 namespace App\Http\Controllers\api;
 
-use App\Http\Controllers\Controller;
-
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Carbon\carbon;
 
-use App\Http\Resources\TransactionResource;
-use App\Http\Resources\OrderResource;
-
-use App\Models\Transaction;
-use App\Models\Order;
-use App\Models\Material;
-use App\Models\Category;
 use App\Models\User;
+use App\Models\Order;
 use App\Models\Cutoff;
 
-use App\Functions\GlobalFunction;
-use App\Functions\SmsFunction;
+use App\Models\Category;
+use App\Models\Material;
 
 use App\Response\Status;
+use App\Models\Transaction;
+use Illuminate\Http\Request;
+use App\Functions\SmsFunction;
+use App\Functions\GlobalFunction;
+use App\Http\Controllers\Controller;
+
+use Illuminate\Support\Facades\Auth;
+use App\Http\Resources\OrderResource;
+
 use App\Http\Requests\Order\StoreRequest;
 use App\Http\Requests\Order\UpdateRequest;
+use App\Http\Requests\Elixir\ElixirRequest;
 use App\Http\Requests\Order\DisplayRequest;
-use App\Http\Requests\Order\Validation\ReasonRequest;
+use App\Http\Resources\TransactionResource;
 use App\Http\Requests\SMS\SMSValidationRequest;
+use App\Http\Requests\Order\Validation\ReasonRequest;
 
 class OrderController extends Controller
 {
@@ -105,6 +106,7 @@ class OrderController extends Controller
             "orders" => function ($query) {
                 return $query->whereNull("deleted_at");
             },
+            "orders.account_title",
         ])
             ->whereNotNull("date_approved")
             ->whereNull("deleted_at")
@@ -227,7 +229,10 @@ class OrderController extends Controller
 
                 "category_id" => $request["order"][$key]["category"]["id"],
                 "category_name" => $request["order"][$key]["category"]["name"],
-
+                "account_title_id" => $request["order"][$key]["account_title"]["sync_id"],
+                "account_title_code" => $request["order"][$key]["account_title"]["code"],
+                "account_title_name" => $request["order"][$key]["account_title"]["name"],
+                "plate_no" => $request["order"][$key]["vehicle"]["plate_no"],
                 "quantity" => $request["order"][$key]["quantity"],
                 "remarks" => $request["order"][$key]["remarks"],
             ]);
@@ -249,17 +254,17 @@ class OrderController extends Controller
 
         $user = Auth()->user();
 
-        $invalid = $transaction
-            ->where("id", $id)
-            ->whereNull("date_approved")
-            ->get();
-
         $invalid_update = $transaction->whereNotNull("date_served");
         if (!$invalid_update) {
             return GlobalFunction::invalid(Status::INVALID_UPDATE_SERVE);
         }
 
-        if ($invalid->isEmpty() && $user->role_id !== 5) {
+        if (
+            $invalid->isEmpty() &&
+            $user->role_id !== 5 &&
+            $user->role_id !== 2 &&
+            $user->role_id !== 4
+        ) {
             return GlobalFunction::invalid(Status::INVALID_UPDATE);
         }
 
@@ -284,6 +289,7 @@ class OrderController extends Controller
             "charge_location_code" => $request["charge_location"]["code"],
             "charge_location_name" => $request["charge_location"]["name"],
             "rush" => $request["rush"],
+            "updated_by" => $user->role_id == 4 ? $user->account_name : null,
             "date_needed" => date("Y-m-d", strtotime($request["date_needed"])),
         ]);
 
@@ -322,6 +328,11 @@ class OrderController extends Controller
 
                     "uom_id" => $value["uom"]["id"],
                     "uom_code" => $value["uom"]["code"],
+
+                    "account_title_id" => $value["account_title"]["sync_id"],
+                    "account_title_code" => $value["account_title"]["code"],
+                    "account_title_name" => $value["account_title"]["name"],
+                    "plate_no" => $value["vehicle"]["plate_no"],
 
                     "quantity" => $value["quantity"],
                     "remarks" => $value["remarks"],
@@ -486,4 +497,63 @@ class OrderController extends Controller
         return SmsFunction::send($requestor_no, $response);
         //    explode('',$header) ;
     }
+
+    public function elixir_update(ElixirRequest $request)
+    {
+        $data = $request->all();
+        $orders = array_reduce(
+            $data,
+            function ($carry, $item) {
+                $carry = [...$carry, ...$item["orders"]];
+                return $carry;
+            },
+            []
+        );
+        foreach ($data as $transactions) {
+            $mir_id = $transactions["mir_id"];
+            $status = $transactions["status"];
+            Transaction::withTrashed()->updateOrCreate(
+                [
+                    "id" => $mir_id,
+                ],
+                [
+                    "status" => $status,
+                ]
+            );
+        }
+
+        foreach ($orders as $order) {
+            Order::withTrashed()->updateorCreate(
+                ["id" => $order["order_id"]],
+                ["quantity_serve" => $order["quantity_serve"]]
+            );
+        }
+
+        return GlobalFunction::response_function(Status::DATA_SYNC, $data);
+    }
+
+    // public function return_order(Request $request, $id)
+    // {
+    //     $user = Auth()->user()->role_id;
+
+    //     if ($user !== 4) {
+    //         return GlobalFunction::invalid(Status::INVALID_ACTION);
+    //     }
+
+    //     $invalid_return = Order::where("id", $id)
+    //         ->whereNull("return_reason")
+    //         ->get();
+
+    //     if ($invalid_return->isEmpty()) {
+    //         return GlobalFunction::invalid(Status::INVALID_ACTION);
+    //     }
+
+    //     $order = Order::find($id);
+
+    //     $order->update([
+    //         "return_reason" => $request["return_reason"],
+    //     ]);
+
+    //     return GlobalFunction::response_function(Status::RETURN_ORDER, $order);
+    // }
 }

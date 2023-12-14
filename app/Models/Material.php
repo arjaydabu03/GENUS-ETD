@@ -36,4 +36,8 @@ class Material extends Model
             ->select("id", "code", "name", "deleted_at")
             ->withTrashed();
     }
+    public function account_title()
+    {
+        return $this->hasMany(MaterialAccountTitle::class, "material_id", "id");
+    }
 }

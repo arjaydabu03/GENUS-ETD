@@ -96,6 +96,6 @@ class CategoryController extends Controller
             $category->restore();
             $message = Status::RESTORE_STATUS;
         }
-        return GlobalFunction::delete_response($message, $category);
+        return GlobalFunction::response_function($message, $category);
     }
 }

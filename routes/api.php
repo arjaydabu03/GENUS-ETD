@@ -2,21 +2,23 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\UserController;
-use App\Http\Controllers\Api\CategoryController;
-use App\Http\Controllers\Api\MaterialController;
-use App\Http\Controllers\Api\OrderController;
-use App\Http\Controllers\Api\TypeController;
 use App\Http\Controllers\Api\UOMController;
-use App\Http\Controllers\Api\WarehouseController;
 use App\Http\Controllers\Api\RoleController;
-use App\Http\Controllers\Api\ApproverController;
-use App\Http\Controllers\Api\ReportController;
+use App\Http\Controllers\Api\TypeController;
+use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\AssetController;
+use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\StoreController;
 use App\Http\Controllers\Api\CutoffController;
+use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\CompanyController;
-use App\Http\Controllers\Api\DepartmentController;
+use App\Http\Controllers\Api\ApproverController;
+use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\LocationController;
+use App\Http\Controllers\Api\MaterialController;
+use App\Http\Controllers\Api\WarehouseController;
+use App\Http\Controllers\Api\DepartmentController;
+use App\Http\Controllers\Api\AccountTitleController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -58,6 +60,11 @@ Route::group(["middleware" => ["auth:sanctum"]], function () {
     Route::post("validate_code", [MaterialController::class, "validate_code"]);
     Route::post("import", [MaterialController::class, "import_material"]);
 
+    Route::get("elixir_material", [MaterialController::class, "elixir_material"]);
+    Route::get("elixir_pivot", [MaterialController::class, "elixir_pivot"]);
+
+    Route::patch("return_order/{id}", [OrderController::class, "return_order"]);
+    Route::patch("order/elixir_update", [OrderController::class, "elixir_update"]);
     Route::apiResource("order", OrderController::class);
     Route::patch("order/cancel/{id}", [OrderController::class, "cancelOrder"]);
     Route::patch("transaction/cancel/{id}", [OrderController::class, "cancelTransaction"]);
@@ -87,12 +94,21 @@ Route::group(["middleware" => ["auth:sanctum"]], function () {
     Route::get("export", [ReportController::class, "export"]);
     Route::patch("serve/{id}", [ReportController::class, "serve"]);
 
+    Route::patch("return_status/{id}", [ReportController::class, "return_status"]);
+
     Route::patch("cut_off/{id}", [CutoffController::class, "destroy"]);
     Route::apiResource("cut_off", CutoffController::class);
 
     Route::apiResource("company", CompanyController::class);
     Route::apiResource("department", DepartmentController::class);
     Route::apiResource("location", LocationController::class);
+
+    Route::apiResource("account_title", AccountTitleController::class);
+
+    Route::patch("archive/{id}", [AssetController::class, "destroy"]);
+    Route::post("import_assets", [AssetController::class, "import_assets"]);
+
+    Route::apiResource("assets", AssetController::class);
 });
 
 Route::post("login", [UserController::class, "login"]);

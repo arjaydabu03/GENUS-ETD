@@ -21,6 +21,8 @@ class TransactionResource extends JsonResource
             "cip_no" => $this->cip_no,
             "helpdesk_no" => $this->helpdesk_no,
             "rush" => $this->rush,
+            "status" => $this->status,
+            "updated_by" => $this->updated_by,
 
             "dates" => [
                 "date_ordered" => $this->date_ordered,
@@ -50,7 +52,7 @@ class TransactionResource extends JsonResource
                 "code" => $this->customer_code,
                 "name" => $this->customer_name,
             ],
-             "charge_company" => [
+            "charge_company" => [
                 "id" => $this->charge_company_id,
                 "code" => $this->charge_company_code,
                 "name" => $this->charge_company_name,

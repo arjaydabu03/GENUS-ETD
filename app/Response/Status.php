@@ -16,8 +16,11 @@ class Status
     const STORE_REGISTERED = "Store successfully registered.";
     const CATEGORY_SAVE = "Category successfully registered.";
     const MATERIAL_SAVE = "Material successfully registered.";
+    const ASSET_SAVE = "Asset successfully registered.";
     const MATERIAL_IMPORT = "Material imported successfully.";
+    const SYNC_ACCOUNT_TITLE = "Sync successfully.";
 
+    const ASSET_IMPORT = "Assets import successfully.";
     const COMPANY_IMPORT = "Company sync successfully.";
     const DEPARTMENT_IMPORT = "Department sync successfully.";
     const LOCATION_IMPORT = "Location sync successfully.";
@@ -40,8 +43,11 @@ class Status
     const COMPANY_DISPLAY = "Company display successfully.";
     const DEPARTMENT_DISPLAY = "Department display successfully.";
     const LOCATION_DISPLAY = "Location display successfully.";
+    const ASSET_DISPLAY = "Assets display successfully.";
+    const ACCOUNT_TITLE_DISPLAY = "Account title display successfully.";
     //UPDATE
     const USER_UPDATE = "User successfully updated.";
+    const ASSETS_UPDATE = "Asset successfully updated.";
     const CATEGORY_UPDATE = "Category successfully updated.";
     const MATERIAL_UPDATE = "Material successfully updated.";
     const ORDER_UPDATE = "Order successfully updated.";
@@ -52,9 +58,11 @@ class Status
     const TRANSACTION_APPROVE = "Transaction successfully approved.";
     const TRANSACTION_RETURN = "Transaction successfully return.";
     const TRANSACTION_SERVE = "Transaction successfully serve.";
+
     //SOFT DELETE
     const ARCHIVE_STATUS = "Successfully archived.";
     const RESTORE_STATUS = "Successfully restored.";
+    const RETURN_ORDER = "Successfully return.";
     //ACCOUNT RESPONSE
     const INVALID_RESPONSE = "The provided credentials are incorrect.";
     const CHANGE_PASSWORD = "Password successfully changed.";
@@ -74,6 +82,7 @@ class Status
     const CUT_OFF = "Cut off reach.";
     const RUSH = "Rush field is required.";
     const DATA_EXPORT = "Data has been exported successfully.";
+    const DATA_SYNC = "Data has been sync successfully.";
 
     const MISSING_HASHTAG = "Missing hashtag.";
 }

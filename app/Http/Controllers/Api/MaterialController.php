@@ -2,17 +2,18 @@
 
 namespace App\Http\Controllers\api;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\Material;
-use App\Models\Category;
-use App\Models\Warehouse;
 use App\Models\UOM;
+use App\Models\Category;
+use App\Models\Material;
 use App\Response\Status;
+use App\Models\Warehouse;
+use Illuminate\Http\Request;
 use App\Functions\GlobalFunction;
+use App\Http\Controllers\Controller;
 
-use App\Http\Requests\Material\MaterialRequest;
+use App\Models\MaterialAccountTitle;
 use App\Http\Requests\Material\DisplayRequest;
+use App\Http\Requests\Material\MaterialRequest;
 use App\Http\Requests\Material\Validation\CodeRequest;
 use App\Http\Requests\Material\Validation\ImportRequest;
 
@@ -25,7 +26,7 @@ class MaterialController extends Controller
         $rows = $request->input("rows", 10);
         $paginate = $request->input("paginate", 1);
 
-        $material = Material::with("category", "uom", "warehouse")
+        $material = Material::with("category", "uom", "warehouse", "account_title")
 
             ->select("id", "code", "name", "category_id", "uom_id", "warehouse_id")
             ->when($paginate, function ($query) {
@@ -46,7 +47,7 @@ class MaterialController extends Controller
                 $query
                     ->where("code", "like", "%" . $search . "%")
                     ->orWhere("name", "like", "%" . $search . "%")
-                      ->orWhere("category_id", "like", "%" . $search . "%");
+                    ->orWhere("category_id", "like", "%" . $search . "%");
             });
 
         $material = $paginate
@@ -74,7 +75,7 @@ class MaterialController extends Controller
     public function store(MaterialRequest $request)
     {
         // return $request;
-        $material = Material::create([
+        $material = new Material([
             "code" => $request["code"],
             "name" => $request["name"],
             "cip_no" => $request["cip_no"],
@@ -83,14 +84,49 @@ class MaterialController extends Controller
             "uom_id" => $request["uom_id"],
             "warehouse_id" => $request["warehouse_id"],
         ]);
+        $material->save();
+        $account_title = $request["account_title"];
+
+        foreach ($account_title as $key => $value) {
+            MaterialAccountTitle::create([
+                "material_id" => $material->id,
+                "account_title_id" => $account_title[$key]["account_title_id"],
+            ]);
+        }
         $material = $material
-            ->with("category", "uom", "warehouse")
+            ->with("category", "uom", "warehouse", "account_title")
             ->firstWhere("id", $material->id);
         return GlobalFunction::save(Status::MATERIAL_SAVE, $material);
     }
 
-    public function update(MaterialRequest $request, $id)
+    public function update(Request $request, $id)
     {
+        $account_title = $request->account_title;
+
+        $newTaggedAccount = collect($account_title)
+            ->pluck("account_title_id")
+            ->toArray();
+
+        $currentTaggedAccount = MaterialAccountTitle::where("material_id", $id)
+            ->get()
+            ->pluck("account_title_id")
+            ->toArray();
+
+        foreach ($currentTaggedAccount as $account_title_id) {
+            if (!in_array($account_title_id, $newTaggedAccount)) {
+                MaterialAccountTitle::where("material_id", $id)
+                    ->where("account_title_id", $account_title_id)
+                    ->delete();
+            }
+        }
+        foreach ($account_title as $index => $value) {
+            if (!in_array($value["account_title_id"], $currentTaggedAccount)) {
+                MaterialAccountTitle::create([
+                    "material_id" => $id,
+                    "account_title_id" => $value["account_title_id"],
+                ]);
+            }
+        }
         $not_found = Material::where("id", $id)->get();
 
         if ($not_found->isEmpty()) {
@@ -109,7 +145,9 @@ class MaterialController extends Controller
             "warehouse_id" => $request["warehouse_id"],
         ]);
 
-        $material = $material->with("category", "uom")->firstWhere("id", $material->id);
+        $material = $material
+            ->with("category", "uom", "account_title")
+            ->firstWhere("id", $material->id);
         return GlobalFunction::response_function(Status::MATERIAL_UPDATE, $material);
     }
 
@@ -154,6 +192,7 @@ class MaterialController extends Controller
             $uom = $file_import["uom"];
             $category = $file_import["category"];
             $warehouse = $file_import["warehouse"];
+            $account_title = $file_import["account_title_id"];
 
             $category_id = Category::where("name", $category)->first();
 
@@ -161,17 +200,29 @@ class MaterialController extends Controller
 
             $warehouse_id = Warehouse::where("name", $warehouse)->first();
 
+            $account_title_id = Warehouse::where("name", $account_title)->first();
+
             $material = Material::create([
                 "code" => $code,
                 "name" => $name,
                 "category_id" => $category_id->id,
                 "uom_id" => $uom_id->id,
                 "warehouse_id" => $warehouse_id->id,
+                "account_title_id" => $account_title_id->sync_id,
             ]);
         }
         return GlobalFunction::save(
             Status::MATERIAL_IMPORT,
             $material->orderByDesc("created_at")->get()
         );
+    }
+
+    public function elixir_material(Request $request)
+    {
+        return $material = Material::with("category", "uom", "warehouse")->get();
+    }
+    public function elixir_pivot(Request $request)
+    {
+        return $material = MaterialAccountTitle::get();
     }
 }

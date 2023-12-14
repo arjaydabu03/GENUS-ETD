@@ -16,7 +16,7 @@ class OrderResource extends JsonResource
     {
         return [
             "id" => $this->id,
-            
+
             "material" => [
                 "id" => $this->material_id,
                 "code" => $this->material_code,
@@ -31,8 +31,17 @@ class OrderResource extends JsonResource
                 "id" => $this->uom_id,
                 "code" => $this->uom_code,
             ],
+            "account_title" => [
+                "sync_id" => $this->account_title_id,
+                "code" => $this->account_title_code,
+                "name" => $this->account_title_name,
+            ],
+            "vehicle" => [
+                "plate_no" => $this->plate_no,
+            ],
 
             "quantity" => $this->quantity,
+            "quantity_serve" => $this->quantity_serve,
             "remarks" => $this->remarks,
             "deleted_at" => $this->deleted_at,
         ];

@@ -29,8 +29,12 @@ class Order extends Model
 
         "uom_id",
         "uom_code",
-
+        "account_title_id",
+        "account_title_code",
+        "account_title_name",
+        "plate_no",
         "quantity",
+        "quantity_serve",
         "remarks",
     ];
 
@@ -43,5 +47,16 @@ class Order extends Model
     public function time()
     {
         return $this->belongsTo(Order::class);
+    }
+    public function account_title()
+    {
+        return $this->belongsToMany(
+            AccountTitle::class,
+            "material_account_title",
+            "material_id",
+            "account_title_id",
+            "material_id",
+            "sync_id"
+        );
     }
 }

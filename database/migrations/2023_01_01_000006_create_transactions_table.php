@@ -39,7 +39,15 @@ return new class extends Migration {
             $table->string("customer_code");
             $table->string("customer_name");
 
-            $table->unsignedBigInteger("charge_department_id")->index();
+            $table->unsignedBigInteger("charge_company_id")->index();
+            $table
+                ->foreign("charge_company_id")
+                ->references("sync_id")
+                ->on("company");
+            $table->string("charge_company_code");
+            $table->string("charge_company_name");
+
+            $table->BigInteger("charge_department_id")->index();
             $table
                 ->foreign("charge_department_id")
                 ->references("sync_id")
@@ -56,7 +64,10 @@ return new class extends Migration {
             $table->string("charge_location_name");
 
             $table->string("rush")->nullable();
-            $table->string("reason");
+            $table->string("reason")->nullable();
+            $table->string("status")->nullable();
+            $table->string("updated_by")->nullable();
+            $table->string("order_type");
 
             $table->unsignedInteger("requestor_id")->index();
             $table

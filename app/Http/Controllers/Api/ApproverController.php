@@ -36,7 +36,7 @@ class ApproverController extends Controller
             ->with("scope_approval")
             ->first()
             ->scope_approval->pluck("location_id");
-            
+
         $approver_id = User::where("id", Auth::id())->pluck("id");
 
         $order = Transaction::with("orders")
@@ -47,7 +47,7 @@ class ApproverController extends Controller
             ->where(function ($query) use ($search) {
                 $query
                     ->where("date_ordered", "like", "%" . $search . "%")
-                     ->orWhere("id", "like", "%" . $search . "%")
+                    ->orWhere("id", "like", "%" . $search . "%")
                     ->orWhere("order_no", "like", "%" . $search . "%")
                     ->orWhere("date_needed", "like", "%" . $search . "%")
                     ->orWhere("date_approved", "like", "%" . $search . "%")
@@ -56,7 +56,7 @@ class ApproverController extends Controller
                     ->orWhere("location_name", "like", "%" . $search . "%")
                     ->orWhere("customer_code", "like", "%" . $search . "%")
                     ->orWhere("customer_name", "like", "%" . $search . "%")
-                     ->orWhere("requestor_name", "like", "%" . $search . "%");
+                    ->orWhere("requestor_name", "like", "%" . $search . "%");
             })
             ->when(isset($request->from) && isset($request->to), function ($query) use (
                 $from,
@@ -71,16 +71,19 @@ class ApproverController extends Controller
             ->when($status === "pending", function ($query) {
                 $query->whereNull("date_approved");
             })
+            ->when($status === "return", function ($query) {
+                $query->whereNotNull("return");
+            })
             ->when($status === "approve", function ($query) {
                 $query->whereNotNull("date_approved");
             })
             ->when($status === "disapprove", function ($query) use ($approver_id) {
                 $query
                     ->whereNotNull("date_approved")
-                    ->where("approver_id",$approver_id)
+                    ->where("approver_id", $approver_id)
                     ->onlyTrashed();
             })
-          ->when($status === "all", function ($query) use ($approver_id) {
+            ->when($status === "all", function ($query) use ($approver_id) {
                 $query->where("approver_id", $approver_id)->withTrashed();
             })
             ->orderByRaw("CASE WHEN rush IS NULL AND date_approved IS NULL THEN 0 ELSE 1 END DESC")
@@ -110,7 +113,10 @@ class ApproverController extends Controller
         $date_today = Carbon::now()
             ->timeZone("Asia/Manila")
             ->format("Y-m-d");
-        $cutoff = date("H:i", strtotime(Cutoff::get()->value("time")));
+
+        $cutoff_time = Cutoff::get()->value("time");
+
+        $cutoff = date("H:i", strtotime($cutoff_time));
 
         $transaction = Transaction::where("id", $id);
 
@@ -132,10 +138,11 @@ class ApproverController extends Controller
             ->where("date_needed", ">", $date_today)
             ->count();
 
-        if ($time_now > $cutoff && !$is_rush && !$is_advance) {
-            return GlobalFunction::denied(Status::CUT_OFF);
+        if ($cutoff_time !== null) {
+            if ($time_now > $cutoff && !$is_rush && !$is_advance) {
+                return GlobalFunction::denied(Status::CUT_OFF);
+            }
         }
-
         $transaction->update([
             "approver_id" => $user->id,
             "approver_name" => $user->account_name,
@@ -170,6 +177,7 @@ class ApproverController extends Controller
             "approver_id" => null,
             "approver_name" => null,
             "date_approved" => null,
+            "return" => null,
         ]);
 
         $transaction = new TransactionResource($transaction->get()->first());
@@ -187,8 +195,6 @@ class ApproverController extends Controller
             ->with("scope_approval")
             ->first()
             ->scope_approval->pluck("location_id");
-            
-     
 
         $pending = Transaction::whereNull("date_approved")
             ->whereNot("requestor_id", Auth::id())
@@ -198,12 +204,8 @@ class ApproverController extends Controller
             ->get()
             ->count();
 
-      
-
         $count = [
-           
             "pending" => $pending,
-           
         ];
 
         return GlobalFunction::response_function(Status::COUNT_DISPLAY, $count);

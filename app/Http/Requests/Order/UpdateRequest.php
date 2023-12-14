@@ -2,13 +2,15 @@
 
 namespace App\Http\Requests\Order;
 
-use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 use Carbon\carbon;
 use App\Models\Cutoff;
-use App\Models\Transaction;
-use App\Functions\GlobalFunction;
 use App\Response\Status;
+use App\Models\Transaction;
+use Illuminate\Validation\Rule;
+use App\Functions\GlobalFunction;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Foundation\Http\FormRequest;
+
 class UpdateRequest extends FormRequest
 {
     /**
@@ -40,7 +42,10 @@ class UpdateRequest extends FormRequest
                 Rule::unique("transactions", "order_no")
                     ->ignore($this->route("order"))
                     ->when(
-                        $requestor_role == 3 || $requestor_role == 2 || $requestor_role == 5,
+                        $requestor_role == 3 ||
+                            $requestor_role == 2 ||
+                            $requestor_role == 5 ||
+                            $requestor_role == 4,
                         function ($query) use ($requestor_id) {
                             return $query->where("requestor_id", $requestor_id);
                         }
@@ -128,17 +133,23 @@ class UpdateRequest extends FormRequest
             // $validator->errors()->add("custom", $this->user()->id);
             // $validator->errors()->add("custom", $this->input("order.*.id"));
 
+            $user = Auth()->user()->role_id;
+
             $date_today = Carbon::now()
                 ->timeZone("Asia/Manila")
                 ->format("Y-m-d");
-            $cutoff = date("H:i", strtotime(Cutoff::get()->value("time")));
+
+            $cutoff_time = Cutoff::get()->value("time");
+            $cutoff = date("H:i", strtotime($cutoff_time));
 
             $is_rush = date("Y-m-d", strtotime($this->input("date_needed"))) == $date_today;
 
             $with_rush_remarks = !empty($this->input("rush"));
 
-            if ($is_rush && !$with_rush_remarks) {
-                $validator->errors()->add("rush", "The rush field is required.");
+            if ($cutoff_time !== null && $user !== 4) {
+                if ($is_rush && !$with_rush_remarks) {
+                    $validator->errors()->add("rush", "cut off reach.");
+                }
             }
         });
     }

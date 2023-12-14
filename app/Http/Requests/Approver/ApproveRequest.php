@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests\Order;
+namespace App\Http\Requests\Approver;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class DisplayRequest extends FormRequest
+class ApproveRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,7 +24,7 @@ class DisplayRequest extends FormRequest
     public function rules()
     {
         return [
-            "status" => ["required", "string", "in:all,pending,approve,disapprove,today,return"],
-        ];
+                
+            ];
     }
 }

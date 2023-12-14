@@ -12,14 +12,14 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::create("charge", function (Blueprint $table) {
+        Schema::create("account_title", function (Blueprint $table) {
             $table->increments("id");
-            $table->bigInteger("sync_id")->unique();
+            $table->unsignedBigInteger("sync_id")->unique();
             $table->string("code");
             $table->string("name");
-
-            $table->softDeletes();
+            $table->string("status");
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
@@ -30,6 +30,6 @@ return new class extends Migration {
      */
     public function down()
     {
-        Schema::dropIfExists("charge");
+        Schema::dropIfExists("account_title");
     }
 };

@@ -40,8 +40,17 @@ return new class extends Migration {
 
             $table->integer("uom_id");
             $table->string("uom_code");
+            $table->unsignedBigInteger("account_title_id")->index();
+            $table
+                ->foreign("account_title_id")
+                ->references("sync_id")
+                ->on("account_title");
+            $table->string("account_title_code");
+            $table->string("account_title_name");
 
+            $table->string("plate_no")->nullable();
             $table->double("quantity");
+            $table->double("quantity_serve")->nullable();
             $table->string("remarks")->nullable();
 
             $table->timestamps();
