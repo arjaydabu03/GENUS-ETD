@@ -27,6 +27,7 @@ class ReportController extends Controller
         $paginate = $request->input("paginate", 1);
         $from = $request->from;
         $to = $request->to;
+        $served_status = $request->served_status;
 
         $date_today = Carbon::now()
             ->timeZone("Asia/Manila")
@@ -70,6 +71,12 @@ class ReportController extends Controller
             })
             ->when($status === "all", function ($query) {
                 $query->whereNotNull("date_needed")->whereNotNull("date_approved");
+            })
+            ->when($served_status === "served", function ($query) {
+                $query->whereNotNull("date_served")->whereNotNull("date_approved");
+            })
+            ->when($served_status === "approved", function ($query) {
+                $query->whereNull("date_served")->whereNotNull("date_approved");
             })
             ->orderByDesc("updated_at");
 
@@ -186,6 +193,7 @@ class ReportController extends Controller
         $from = $request->from;
         $to = $request->to;
         $status = $request->input("status", "");
+        $served_status = $request->served_status;
 
         $date_today = Carbon::now()
             ->timeZone("Asia/Manila")
@@ -222,6 +230,12 @@ class ReportController extends Controller
                         ->whereDate("date_needed", ">=", $from)
                         ->whereDate("date_needed", "<=", $to);
                 });
+            })
+            ->when($served_status === "served", function ($query) {
+                $query->whereNotNull("date_served")->whereNotNull("date_approved");
+            })
+            ->when($served_status === "approved", function ($query) {
+                $query->whereNull("date_served")->whereNotNull("date_approved");
             })
             ->get();
         return GlobalFunction::response_function(Status::DATA_EXPORT, $order);

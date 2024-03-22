@@ -121,13 +121,22 @@ class OrderController extends Controller
                 });
             })
             ->when($status === "today", function ($query) use ($date_today) {
-                $query->whereNotNull("date_approved")->whereDate("date_needed", $date_today);
+                $query
+                    ->whereNotNull("date_approved")
+                    ->whereNotNull("date_served")
+                    ->whereDate("date_needed", $date_today);
             })
             ->when($status === "pending", function ($query) use ($date_today) {
-                $query->whereDate("date_needed", ">", $date_today)->whereNotNull("date_approved");
+                $query
+                    ->whereDate("date_needed", ">", $date_today)
+                    ->whereNotNull("date_served")
+                    ->whereNotNull("date_approved");
             })
             ->when($status === "all", function ($query) {
-                $query->whereNotNull("date_needed")->whereNotNull("date_approved");
+                $query
+                    ->whereNotNull("date_needed")
+                    ->whereNotNull("date_served")
+                    ->whereNotNull("date_approved");
             })
             ->orderByDesc("updated_at")
             ->get();

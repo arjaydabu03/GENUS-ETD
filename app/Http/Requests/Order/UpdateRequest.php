@@ -142,7 +142,9 @@ class UpdateRequest extends FormRequest
             $cutoff_time = Cutoff::get()->value("time");
             $cutoff = date("H:i", strtotime($cutoff_time));
 
-            $is_rush = date("Y-m-d", strtotime($this->input("date_needed"))) == $date_today;
+            $is_rush =
+                date("Y-m-d", strtotime($this->input("date_needed"))) == $date_today &&
+                $time_now > $cutoff;
 
             $with_rush_remarks = !empty($this->input("rush"));
 
